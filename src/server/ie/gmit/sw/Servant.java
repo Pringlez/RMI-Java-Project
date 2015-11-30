@@ -5,15 +5,14 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 
-public class VigenereBreakerImp extends UnicastRemoteObject implements VigenereBreaker {
+public class Servant extends UnicastRemoteObject implements VigenereBreaker {
 
 	private static final long serialVersionUID = 1L;
 	
 	private KeyEnumerator breaker;
 	
-	public VigenereBreakerImp() throws Exception {
+	public Servant() throws Exception {
 		breaker = new KeyEnumerator();
-		//UnicastRemoteObject.exportObject(this);
 	}
 
 	@Override
@@ -24,7 +23,7 @@ public class VigenereBreakerImp extends UnicastRemoteObject implements VigenereB
 	public static void main(String[] args) throws Exception {
 		System.out.println("Starting Remote Service!");
 		LocateRegistry.createRegistry(1099);
-		Naming.bind("Cypher-Breaker", new VigenereBreakerImp());
+		Naming.bind("Cypher-Breaker", new Servant());
 		System.out.println("Service Started...");
 	}
 }

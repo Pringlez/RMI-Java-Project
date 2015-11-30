@@ -3,7 +3,8 @@ package ie.gmit.sw;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class QuadgramMap {
 
@@ -14,6 +15,11 @@ public class QuadgramMap {
 	}
 	
 	public float getScore(String text){
+		
+		if(text.equals("JOHNWALSH")){
+			System.out.println("John Found");
+		}
+		
 		float score = 0.00f;
 		for (int i = 0; i < text.length(); i += 4) {
 			if (i + 4 >= text.length()) break;
@@ -23,9 +29,13 @@ public class QuadgramMap {
 			if (map.get(next) != null){
 				float frequency = (float)map.get(next);
 				float total = (float)map.size();
+				
+				//System.out.println("Score F: " + frequency + " T: " + total);
+				
 				score += Math.log10((frequency / total));
 			}
 		}
+		
 		return -score;
 	}
 	
@@ -61,9 +71,9 @@ public class QuadgramMap {
 					}
 					
 					br.close();
-					System.out.println("Quadgram Map Loaded!");
+					System.out.println("Loaded " + fileName + " Map Successfully!");	
 				}catch(Exception e){
-					System.out.println("Error Loading Quadgram Map!");
+					System.out.println("Loading " + fileName + " Map Failed!");
 				}
 			break;
 			case 1:
@@ -81,10 +91,9 @@ public class QuadgramMap {
 					}
 					
 					br2.close();
-					System.out.println("Quadgram Map Loaded!");
-					
+					System.out.println("Loaded " + fileName + " Map Successfully!");	
 				}catch(Exception e){
-					System.out.println("Error Loading Quadgram Map!");
+					System.out.println("Loading " + fileName + " Map Failed!");
 				}
 			break;
 		}

@@ -129,12 +129,14 @@ public class Vigenere {
 		return doCypher(text, encrypt);
 	}
 	
-	/*public static void main(String[] args) {
-		Vigenere v = new Vigenere("ABAB");
-		String cypherTxt = v.doCypher("JOHNWALSH", true);
+	public static void main(String[] args) {
+		Vigenere v = new Vigenere("TEST");
+		String cypherTxt = v.doCypher("the brown fox is running. It is very nice iam tired of this shit", true);
 		System.out.println(cypherTxt);
 		
 		String plainTxt = v.doCypher(cypherTxt, false);
 		System.out.println(plainTxt);
-	}*/
+		
+		System.out.println("Test: " + Math.log10((450000 / 300000)));
+	}
 }

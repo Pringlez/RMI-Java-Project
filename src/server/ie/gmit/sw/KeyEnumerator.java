@@ -11,8 +11,11 @@ public class KeyEnumerator {
 	 * Select either one (File extension not required)
 	 */
 	public KeyEnumerator() throws Exception{
-		//map = new QuadgramMap("WarAndPeace", 0);
-		map = new QuadgramMap("Quadgrams", 1);
+		// Passing 0 as the integer will parse a normal text file
+		// Passing 1 will parse a specific 2 column text file like 'Quadgrams.txt' 
+		//map = new QuadgramMap("Quadgrams", 1);
+		map = new QuadgramMap("WarAndPeace", 0);
+		//map.parse("WarAndPeace", 0);
 	}
 	
 	private char[] getNextKey(char[] key){
@@ -47,16 +50,20 @@ public class KeyEnumerator {
 					
 					if(keyStr != null)
 					{
+						//System.out.println("Key: " + keyStr);
 						result = new Vigenere(keyStr).doCypher(cypherText, false);
 						float score = map.getScore(result);
+						
+						//System.out.println("Score: " + score);
 						
 						if(result.equals("JOHNWALSH")){
 							me = "John was there - Score: " + score;
 						}
 						
 						if(score > bestScore){
+							bestScore = score;
 							bestKey = keyStr;
-							//System.out.println(bestKey);
+							System.out.println("New Best: " + bestKey);
 						}
 					}
 				} catch (Exception e) {
