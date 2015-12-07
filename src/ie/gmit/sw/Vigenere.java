@@ -52,9 +52,11 @@ public class Vigenere {
 			else{
 				this.key = "FAIL".toCharArray();
 			}
-		} catch (Exception e) {
-			System.out.println("Problem Setting Key - Area 1");
-		}  
+		} 
+		catch (Exception error) {
+			System.out.println("Problem found with method 'setKey(String s)'!");
+			System.out.println("Error: " + error);
+		}   
 	}
 	
 	/* Over-loaded setKey, passing & setting the passed char array 
@@ -63,9 +65,11 @@ public class Vigenere {
 	public void setKey(char[] key){
 		try {
 			this.key = key;
-		} catch (Exception e) {
-			System.out.println("Problem Setting Key - Area 2");
-		}  
+		} 
+		catch (Exception error) {
+			System.out.println("Problem found with method 'setKey(char[] key)'!");
+			System.out.println("Error: " + error);
+		} 
 	}
 	
 	/* The cypher character is produced by the passed char variables, the intersection between
@@ -115,7 +119,8 @@ public class Vigenere {
 			// If true then encrypt
 			if(encrypt){
 				buffer.append(getEncryptedCharacter(key[j], text[i]));
-			}else{
+			}
+			else{
 				buffer.append(getDecryptedCharacter(key[j], text[i]));
 			}
 			
@@ -130,13 +135,12 @@ public class Vigenere {
 	}
 	
 	public static void main(String[] args) {
-		Vigenere v = new Vigenere("TEST");
-		String cypherTxt = v.doCypher("the brown fox is running. It is very nice iam tired of this shit", true);
+		//Vigenere v = new Vigenere("TEST");
+		Vigenere v = new Vigenere("BAGS");
+		String cypherTxt = v.doCypher("WELLPRINCESOGENOAANDLUCCAARENOWJUSTFAMILYESTATESOFTHEBUONAPARTESBUTIWARNYOUIFYOUDONTTELLMETHATTHISMEANSWARIFYOUSTILLTRYTODEFENDTHEINFAMIESANDHORRORSPERPETRATEDBYTHATANTICHRISTIREALLYBELIEVEHEISANTICHRISTIWILLHAVENOTHINGMORE", true);
 		System.out.println(cypherTxt);
-		
 		String plainTxt = v.doCypher(cypherTxt, false);
 		System.out.println(plainTxt);
-		
 		System.out.println("Test: " + Math.log10((450000 / 300000)));
 	}
 }

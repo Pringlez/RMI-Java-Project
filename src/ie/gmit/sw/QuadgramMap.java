@@ -16,22 +16,16 @@ public class QuadgramMap {
 	
 	public float getScore(String text){
 		
-		if(text.equals("JOHNWALSH")){
-			System.out.println("John Found");
-		}
+		float score = 0.0f, frequency, total;
 		
-		float score = 0.00f;
 		for (int i = 0; i < text.length(); i += 4) {
 			if (i + 4 >= text.length()) break;
 			
 			String next = text.substring(i, i + 4);
 			
 			if (map.get(next) != null){
-				float frequency = (float)map.get(next);
-				float total = (float)map.size();
-				
-				//System.out.println("Score F: " + frequency + " T: " + total);
-				
+				frequency = (float)map.get(next);
+				total = (float)map.size();
 				score += Math.log10((frequency / total));
 			}
 		}
@@ -47,10 +41,11 @@ public class QuadgramMap {
 				try{
 					BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("./" + fileName + ".txt")));
 					StringBuffer sb = new StringBuffer();
-					int j;
+					int j, frequency = 0;
+					char next;
 					
 					while((j = br.read()) != -1){
-						char next = (char)j;
+						next = (char)j;
 						
 						if (next >= 'A' && next <= 'z'){
 							sb.append(next);
@@ -59,7 +54,6 @@ public class QuadgramMap {
 						if(sb.length() == 4){
 							String qGram = sb.toString().toUpperCase();
 							sb = new StringBuffer();
-							int frequency = 0;
 							
 							if(map.containsKey(qGram)){
 								frequency = map.get(qGram);
@@ -72,28 +66,31 @@ public class QuadgramMap {
 					
 					br.close();
 					System.out.println("Loaded " + fileName + " Map Successfully!");	
-				}catch(Exception e){
+				}
+				catch (Exception error) {
 					System.out.println("Loading " + fileName + " Map Failed!");
+					System.out.println("Error: " + error);
 				}
 			break;
 			case 1:
 				// Loading supplied quadgrams file into hashmap
 				try{
 					BufferedReader br2 = new BufferedReader(new InputStreamReader(new FileInputStream("./" + fileName + ".txt")));
-					String line, quad;
-					Integer freq;
+					String line, quadgram;
+					Integer frequency;
 					
 					while ((line = br2.readLine()) != null) {
-						quad = line.substring(0, 4);
-						freq = Integer.parseInt(line.substring(5, line.length()));
-						//System.out.println("Quad: " + quad + " Freq: " + freq);
-						map.put(quad, freq);
+						quadgram = line.substring(0, 4);
+						frequency = Integer.parseInt(line.substring(5, line.length()));
+						map.put(quadgram, frequency);
 					}
 					
 					br2.close();
 					System.out.println("Loaded " + fileName + " Map Successfully!");	
-				}catch(Exception e){
+				}
+				catch (Exception error) {
 					System.out.println("Loading " + fileName + " Map Failed!");
+					System.out.println("Error: " + error);
 				}
 			break;
 		}

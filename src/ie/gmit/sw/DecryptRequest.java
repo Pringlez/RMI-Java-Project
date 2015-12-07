@@ -1,10 +1,14 @@
 package ie.gmit.sw;
 
 public class DecryptRequest {
-
+	
 	private long jobNumber;
 	private String cypherText;
 	private int maxKeyLength;
+	private long timeToComplete;
+
+	public DecryptRequest(){
+	}
 	
 	public DecryptRequest(long jobNumber, String cypherText, int maxKeyLength){
 		setJobNumber(jobNumber);
@@ -34,5 +38,13 @@ public class DecryptRequest {
 
 	public void setMaxKeyLength(int maxKeyLength) {
 		this.maxKeyLength = maxKeyLength;
+	}
+
+	public long getTimeToComplete() {
+		return timeToComplete;
+	}
+
+	public void setTimeToComplete(long timeToComplete) {
+		this.timeToComplete = timeToComplete;
 	}
 }

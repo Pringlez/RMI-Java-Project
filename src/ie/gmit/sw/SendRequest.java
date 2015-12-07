@@ -15,16 +15,18 @@ public class SendRequest {
 		setKey(maxKeyLength);
 	}
 	
-	public String getPlainText(String remoteHost) throws MalformedURLException, RemoteException, NotBoundException{
+	public String getPlainText() throws MalformedURLException, RemoteException, NotBoundException{
 		
-		VigenereBreaker vb = (VigenereBreaker) Naming.lookup("rmi://" + remoteHost + ":1099/Cypher-Breaker");
+		VigenereBreaker vb = (VigenereBreaker) Naming.lookup("rmi://" + CrackerHandler.getHost() + ":1099/Cypher-Breaker");
+		//VigenereBreaker vb = (VigenereBreaker) Naming.lookup("rmi://" + "localhost" + ":1099/Cypher-Breaker");
 		
 		String result = "";
 		try {
 			result = vb.decrypt(getCypher(), getKey());
 		}
-		catch (Exception e) {
-			System.out.println("Problem Found with Decrypt!");
+		catch (Exception error) {
+        	System.out.println("Problem found with method 'getPlainText'!");
+        	System.out.println("Error: " + error);
 		}
 		
 		return result;

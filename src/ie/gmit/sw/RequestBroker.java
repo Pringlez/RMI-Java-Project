@@ -9,15 +9,17 @@ import java.util.concurrent.BlockingQueue;
 public class RequestBroker implements Runnable {
 	
 	protected BlockingQueue<DecryptRequest> requestQueue = null;
-	protected HashMap<Long, String> requestDoneMap = null;
+	protected HashMap<Long, String> requestWorkDoneMap = null;
+	protected HashMap<Long, Boolean> requestFinishedMap = null;
 
-	public RequestBroker(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestDoneMap) {
-		setRequests(requestQueue, requestDoneMap);
+	public RequestBroker(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestWorkDoneMap, HashMap<Long, Boolean> requestFinishedMap) {
+		setRequests(requestQueue, requestWorkDoneMap, requestFinishedMap);
     }
 	
-	public void setRequests(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestDoneMap) {
+	public void setRequests(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestWorkDoneMap, HashMap<Long, Boolean> requestFinishedMap) {
 		this.requestQueue = requestQueue;
-		this.requestDoneMap = requestDoneMap;
+		this.requestWorkDoneMap = requestWorkDoneMap;
+		this.requestFinishedMap = requestFinishedMap;
 	}
 
     public void run() {
@@ -29,23 +31,21 @@ public class RequestBroker implements Runnable {
         		
         		if(request != null){
 	        		SendRequest newRequest = new SendRequest(request.getCypherText(), request.getMaxKeyLength());
-	        		String cypherResult = newRequest.getPlainText(CrackerHandler.getHost());
-	        		requestDoneMap.put(request.getJobNumber(), cypherResult);
+	        		String cypherResult = newRequest.getPlainText();
+	        		request.setTimeToComplete(System.currentTimeMillis() - request.getTimeToComplete());
+	        		requestWorkDoneMap.put(request.getJobNumber(), cypherResult);
+	        		requestFinishedMap.put(request.getJobNumber(), true);
         		}
 	            // Make thread sleep
 	            Thread.sleep(2000);
-	            
         	}
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NotBoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
