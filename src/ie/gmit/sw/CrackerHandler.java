@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 public class CrackerHandler extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private static String remoteHost = null;
+	private static String remoteHost = "localhost";
 	private static RequestBroker rb;
 	private static Thread brokerThread;
 	
@@ -26,9 +26,11 @@ public class CrackerHandler extends HttpServlet {
 	public void init() throws ServletException {
 		ServletContext ctx = getServletContext();
 		remoteHost = ctx.getInitParameter("RMI_SERVER"); //Reads the value from the <context-param> in web.xml
-		// Starting new request broker thread
+		// Starting new request broker thread & passing references to the maps & blocking queue
 		rb = new RequestBroker(requestQueue, requestDecypherMap, requestWorkMap, remoteHost);
+		// Thread will create new instance of 'RequestBroker' to run
 		brokerThread = new Thread(rb);
+		// If thread already running ignore 
 		if(!brokerThread.isAlive()){
 			brokerThread.start();
 		}
@@ -36,12 +38,13 @@ public class CrackerHandler extends HttpServlet {
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
+		// Reload time in ms
 		int pageReloadTime = 10000;
 		
 		resp.setContentType("text/html");
 		PrintWriter out = resp.getWriter();
 		
-		// Getting request information
+		// Getting request information from fields
 		int maxKeyLength = Integer.parseInt(req.getParameter("frmMaxKeyLength"));
 		String cypherText = req.getParameter("frmCypherText");
 		String taskNumber = req.getParameter("frmStatus");
@@ -50,6 +53,7 @@ public class CrackerHandler extends HttpServlet {
 		// Getting jobNumber from http request when refresh is performed
 		try {
 			if(taskNumber != null){
+				// Getting jobNumber from taskNumber when page refresh
 				jobNumber = Long.parseLong(taskNumber.substring(1, taskNumber.length()));
 			}
 		} 
@@ -60,27 +64,30 @@ public class CrackerHandler extends HttpServlet {
 		out.print("<html><head><title>Distributed Systems Assignment</title></head>");		
 		out.print("<body>");
 		
-		// If task number is null then initialize vars
+		// If task number is null then initialize variables
 		if (taskNumber == null){
 			
 			// Generating long number for task
-			long generateNumber = System.currentTimeMillis() / 1000L;
+			long generateNumber = System.currentTimeMillis() / 100L;
 			
-			// Creating request object singleton
+			// Creating request object
 			DecryptRequest dr = new DecryptRequest(generateNumber, cypherText, maxKeyLength);
 			
 			taskNumber = new String("T" + generateNumber);
 
+			// Message out to user when request created
         	out.print("<h1>Processing request for Job #: " + taskNumber + "</h1>");
         	out.print("<p>RMI Server is located at " + remoteHost + "</p>");
         	out.print("<p>Maximum Key Length: " + maxKeyLength + "</p>");		
             out.print("<p>CypherText: " + cypherText + "</p>");
             
+            // Adding request to blocking queue & work map
             requestQueue.add(dr);
+            // Work map is keep track of user requests being generated, does not store plain text decypher
             requestWorkMap.put(generateNumber, dr);
 		}
 		else{
-        	/* Get job number from map and display result if job completed, if job not complete
+        	/* Get job number from map and display result if job completed, if not completed
         	 * then display necessary message
         	 */
 			if(!requestWorkMap.get(jobNumber).isComplete()){
@@ -91,6 +98,10 @@ public class CrackerHandler extends HttpServlet {
                 out.print("<p>Task Complete: " + requestWorkMap.get(jobNumber).isComplete() + "</p>");
             }
             else{
+            	/* If the cypher server is finished with the request it will appear in the decypher map
+            	 * The decypher plain text will be displayed to the user for 30 seconds, then
+            	 * it will disappear and be deleted from the decypher map
+            	 */
             	if(requestDecypherMap.get(jobNumber) != null){
                 	out.print("<h1>Finished work on Job #: " + taskNumber + " Successfully!</h1>");
                 	out.print("<p>RMI Server is located at " + remoteHost + "</p>");
@@ -105,7 +116,7 @@ public class CrackerHandler extends HttpServlet {
                 	pageReloadTime = 30000;
                 }
             	else{
-                	// If job has been fully completed & removed from finished queue then display
+                	// If job has been completed it will display this message, link to the home page provided
                 	if(requestWorkMap.get(jobNumber).isComplete()){
                 		out.print("<h1>Job #: " + taskNumber + " Complete!</h1>");
                 		out.print("<p>RMI Server is located at " + remoteHost + "</p>");
@@ -117,6 +128,7 @@ public class CrackerHandler extends HttpServlet {
         	}
         }
 		
+		// The cracker form information
 		out.print("<form name=\"frmCracker\">");
 		out.print("<input name=\"frmMaxKeyLength\" type=\"hidden\" value=\"" + maxKeyLength + "\">");
 		out.print("<input name=\"frmCypherText\" type=\"hidden\" value=\"" + cypherText + "\">");
@@ -125,11 +137,12 @@ public class CrackerHandler extends HttpServlet {
 		out.print("</body>");	
 		out.print("</html>");	
 		
+		// Refreshing page after set amount of ms
 		out.print("<script>");
 		out.print("var wait=setTimeout(\"document.frmCracker.submit();\", " + pageReloadTime + ");");
 		out.print("</script>");
 		
-		// Resetting after removing task from map
+		// Resetting after removing request from map
 		pageReloadTime = 10000;
 				
 		/*-----------------------------------------------------------------------     
