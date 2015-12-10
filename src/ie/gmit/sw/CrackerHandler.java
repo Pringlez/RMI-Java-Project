@@ -15,16 +15,23 @@ public class CrackerHandler extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 	private static String remoteHost = null;
-	private static long jobNumber = 0;
+	private static RequestBroker rb;
+	private static Thread brokerThread;
 	
 	// Blocking queue & HashMap defined at class level 
-	private static BlockingQueue<DecryptRequest> requestQueue = new ArrayBlockingQueue<DecryptRequest>(10);
-	private static HashMap<Long, String> requestWorkDoneMap = new HashMap<Long, String>();
-	private static HashMap<Long, Boolean> requestFinishedMap = new HashMap<Long, Boolean>();
+	private BlockingQueue<DecryptRequest> requestQueue = new ArrayBlockingQueue<DecryptRequest>(100);
+	private HashMap<Long, String> requestDecypherMap = new HashMap<Long, String>();
+	private HashMap<Long, DecryptRequest> requestWorkMap = new HashMap<Long, DecryptRequest>();
 
 	public void init() throws ServletException {
 		ServletContext ctx = getServletContext();
 		remoteHost = ctx.getInitParameter("RMI_SERVER"); //Reads the value from the <context-param> in web.xml
+		// Starting new request broker thread
+		rb = new RequestBroker(requestQueue, requestDecypherMap, requestWorkMap, remoteHost);
+		brokerThread = new Thread(rb);
+		if(!brokerThread.isAlive()){
+			brokerThread.start();
+		}
 	}
 
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -38,26 +45,31 @@ public class CrackerHandler extends HttpServlet {
 		int maxKeyLength = Integer.parseInt(req.getParameter("frmMaxKeyLength"));
 		String cypherText = req.getParameter("frmCypherText");
 		String taskNumber = req.getParameter("frmStatus");
-
+		long jobNumber = 0;
+		
+		// Getting jobNumber from http request when refresh is performed
+		try {
+			if(taskNumber != null){
+				jobNumber = Long.parseLong(taskNumber.substring(1, taskNumber.length()));
+			}
+		} 
+		catch (NumberFormatException error) {
+			System.out.println("Error: " + error);
+		}
+		
 		out.print("<html><head><title>Distributed Systems Assignment</title></head>");		
 		out.print("<body>");
 		
 		// If task number is null then initialize vars
 		if (taskNumber == null){
 			
-			RequestBroker rb = new RequestBroker(requestQueue, requestWorkDoneMap, requestFinishedMap);
-			Thread thread = new Thread(rb);
-			
-			if(!thread.isAlive()){
-				thread.start();
-			}
-			
-			jobNumber++;
+			// Generating long number for task
+			long generateNumber = System.currentTimeMillis() / 1000L;
 			
 			// Creating request object singleton
-			DecryptRequest dr = new DecryptRequest(jobNumber, cypherText, maxKeyLength);
+			DecryptRequest dr = new DecryptRequest(generateNumber, cypherText, maxKeyLength);
 			
-			taskNumber = new String("T" + jobNumber);
+			taskNumber = new String("T" + generateNumber);
 
         	out.print("<h1>Processing request for Job #: " + taskNumber + "</h1>");
         	out.print("<p>RMI Server is located at " + remoteHost + "</p>");
@@ -65,41 +77,41 @@ public class CrackerHandler extends HttpServlet {
             out.print("<p>CypherText: " + cypherText + "</p>");
             
             requestQueue.add(dr);
-            dr.setTimeToComplete(System.currentTimeMillis());
-            requestFinishedMap.put(jobNumber, false);
+            requestWorkMap.put(generateNumber, dr);
 		}
 		else{
         	/* Get job number from map and display result if job completed, if job not complete
         	 * then display necessary message
         	 */
-			if(!requestFinishedMap.get(jobNumber)){
+			if(!requestWorkMap.get(jobNumber).isComplete()){
 				out.print("<h1>Working on request for Job #: " + taskNumber + "...</h1>");
         		out.print("<p>RMI Server is located at " + remoteHost + "</p>");
             	out.print("<p>Maximum Key Length: " + maxKeyLength + "</p>");		
                 out.print("<p>Cypher Text: " + cypherText + "</p>");
-                out.print("<p>Task Complete: " + requestFinishedMap.get(jobNumber) + "</p>");
+                out.print("<p>Task Complete: " + requestWorkMap.get(jobNumber).isComplete() + "</p>");
             }
             else{
-            	if(requestWorkDoneMap.get(jobNumber) != null){
+            	if(requestDecypherMap.get(jobNumber) != null){
                 	out.print("<h1>Finished work on Job #: " + taskNumber + " Successfully!</h1>");
                 	out.print("<p>RMI Server is located at " + remoteHost + "</p>");
                 	out.print("<p>Maximum Key Length: " + maxKeyLength + "</p>");		
                     out.print("<p>Cypher Text: " + cypherText + "</p>");
                     out.print("<p><b style=\"color:red\">Message will disappear in 30 seconds!</b></p>");
-                    out.print("<p>Plain Text: <b>" + requestWorkDoneMap.get(jobNumber) + "</b></p>");
+                    out.print("<p>Plain Text: <b>" + requestDecypherMap.get(jobNumber) + "</b></p>");
                 	// Removing request from map & setting another map indicating work is finished
-                	requestWorkDoneMap.remove(jobNumber);
-                	out.print("<p>Task Complete: " + requestFinishedMap.get(jobNumber) + "</p>");
-                	out.print("<p>Completed in " + "TODO" + " seconds!</p>");
+                	requestDecypherMap.remove(jobNumber);
+                	out.print("<p>Task Complete: " + requestWorkMap.get(jobNumber).isComplete() + "</p>");
+                	out.print("<p>Completed in " + requestWorkMap.get(jobNumber).getTimeToComplete() + " seconds!</p>");
                 	pageReloadTime = 30000;
                 }
             	else{
                 	// If job has been fully completed & removed from finished queue then display
-                	if(requestFinishedMap.get(jobNumber)){
+                	if(requestWorkMap.get(jobNumber).isComplete()){
                 		out.print("<h1>Job #: " + taskNumber + " Complete!</h1>");
                 		out.print("<p>RMI Server is located at " + remoteHost + "</p>");
-                		out.print("<p>Task Complete: " + requestFinishedMap.get(jobNumber) + "</p>");
-                		out.print("<p>Return to cracker page - <a href=\"http://" + remoteHost + ":8080/cracker\">Home Page</a></p>");
+                		out.print("<p>Task Complete: " + requestWorkMap.get(jobNumber).isComplete() + "</p>");
+                		out.print("<p>Completed in " + requestWorkMap.get(jobNumber).getTimeToComplete() + " seconds!</p>");
+                		out.print("<p><a href=\"http://localhost:8080/cracker\">Cracker Home Page</a></p>");
                 	}
                 }
         	}

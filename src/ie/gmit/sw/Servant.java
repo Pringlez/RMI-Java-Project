@@ -24,10 +24,11 @@ public class Servant extends UnicastRemoteObject implements VigenereBreaker {
 		try {
 			thread.join();
 		} 
-		catch (InterruptedException e) {
-			e.printStackTrace();
+		catch (InterruptedException error) {
+			System.out.println("Problem found with method 'decrypt'!");
+			System.out.println("Error: " + error);
 		}
-
+		
 		return breaker.getCypherResult();
 	}
 	
@@ -36,18 +37,24 @@ public class Servant extends UnicastRemoteObject implements VigenereBreaker {
 		try {
 			breaker = new KeyEnumerator();
 		} 
-		catch (Exception e) {
-			e.printStackTrace();
+		catch (Exception error) {
+			System.out.println("Problem found with method 'getNewKeyEnumerator'!");
+			System.out.println("Error: " + error);
 		}
 		return breaker;
 	}
 	
 	public static void main(String[] args) throws Exception {
-		System.out.println("Starting Remote Service!");
-		// On linux machine you need to set rmi hostname & disable your firewall
-		//System.getProperty("java.rmi.server.hostname", "192.168.1.102");
-		LocateRegistry.createRegistry(1099);
-		Naming.bind("Cypher-Breaker", new Servant());
-		System.out.println("Service Started...");
+		try {
+			System.out.println("Starting Remote Service!");
+			// On linux machine you need to set rmi hostname to your IP address & disable your firewall
+			//System.getProperty("java.rmi.server.hostname", "192.168.1.102");
+			LocateRegistry.createRegistry(1099);
+			Naming.bind("Cypher-Breaker", new Servant());
+			System.out.println("Service Started...");
+		} 
+		catch (Exception error) {
+			System.out.println("Error: " + error);
+		}
 	}
 }

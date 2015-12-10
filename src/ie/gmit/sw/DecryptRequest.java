@@ -6,6 +6,7 @@ public class DecryptRequest {
 	private String cypherText;
 	private int maxKeyLength;
 	private long timeToComplete;
+	private boolean isComplete;
 
 	public DecryptRequest(){
 	}
@@ -14,6 +15,8 @@ public class DecryptRequest {
 		setJobNumber(jobNumber);
 		setCypherText(cypherText);
 		setMaxKeyLength(maxKeyLength);
+		setTimeToComplete(0);
+		setComplete(false);
 	}
 
 	public long getJobNumber() {
@@ -46,5 +49,13 @@ public class DecryptRequest {
 
 	public void setTimeToComplete(long timeToComplete) {
 		this.timeToComplete = timeToComplete;
+	}
+
+	public boolean isComplete() {
+		return isComplete;
+	}
+
+	public void setComplete(boolean isComplete) {
+		this.isComplete = isComplete;
 	}
 }

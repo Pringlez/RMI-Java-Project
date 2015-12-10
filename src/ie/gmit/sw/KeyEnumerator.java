@@ -11,6 +11,8 @@ public class KeyEnumerator implements Runnable {
 	private float cypherScore;
 	private int keysEnumerated;
 	
+	private boolean debugging = false;
+	
 	/* Loading quadgram file into map
 	 * Select either one (File extension not required)
 	 */
@@ -47,7 +49,9 @@ public class KeyEnumerator implements Runnable {
 	
 	public String crackCypher(String cypherText, int maxKeyLength) {
 		
+		System.out.println("Received Decypher Request!");
 		System.out.println("Cypher Text: " + cypherText);
+		System.out.println("Max Key Length: " + maxKeyLength);
 		
 		char[] key = null;
 		int keyCounter = 0;
@@ -72,7 +76,8 @@ public class KeyEnumerator implements Runnable {
 						if(cypherScore > getBestScore()){
 							setBestScore(cypherScore);
 							setBestKey(keyStr);
-							System.out.println("New Best: " + getBestKey());
+							if(debugging)
+								System.out.println("New Best Key: " + getBestKey());
 						}
 					}
 				} 
@@ -86,9 +91,14 @@ public class KeyEnumerator implements Runnable {
 		setKeysEnumerated(keyCounter);
 		setCypherResult(new Vigenere(getBestKey()).doCypher(cypherText, false));
 		setCypherScore(map.getScore(getCypherResult()));
-		System.out.println("Enumerated " + getKeysEnumerated() + " Keys");
-		System.out.println(getCypherResult());
-		System.out.println("Best: " + getBestKey() + " - Score: " + getCypherScore());
+		
+		if(debugging){
+			System.out.println("Enumerated " + getKeysEnumerated() + " Keys");
+			System.out.println(getCypherResult());
+		}
+		
+		System.out.println("Best Key: " + getBestKey() + " - Score: " + getCypherScore());
+		
 		// Resetting for next job
 		setBestScore(0.0f);
 		

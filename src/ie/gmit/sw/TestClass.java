@@ -8,40 +8,59 @@ import java.util.concurrent.BlockingQueue;
 
 public class TestClass {
 
-	private static String remoteHost = "localhost";
-	private static long jobNumber = 0;
+	private static String remoteHost = "192.168.1.102";
 	
 	// Blocking queue & HashMap defined at class level 
-	private static BlockingQueue<DecryptRequest> requestQueue = new ArrayBlockingQueue<DecryptRequest>(10);
-	private static HashMap<Long, String> requestWorkDoneMap = new HashMap<Long, String>();
-	private static HashMap<Long, Boolean> requestFinishedMap = new HashMap<Long, Boolean>();
+	private BlockingQueue<DecryptRequest> requestQueue = new ArrayBlockingQueue<DecryptRequest>(100);
+	private HashMap<Long, String> requestDecypherMap = new HashMap<Long, String>();
+	private HashMap<Long, DecryptRequest> requestWorkMap = new HashMap<Long, DecryptRequest>();
+	
+	private static RequestBroker rb;
+	private static Thread brokerThread;
 
 	public TestClass() {
-	    doGet(4, "PIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVW", null);
+		// Starting new request broker thread
+		rb = new RequestBroker(requestQueue, requestDecypherMap, requestWorkMap, remoteHost);
+		brokerThread = new Thread(rb);
+		if(!brokerThread.isAlive()){
+			brokerThread.start();
+		}
+		else{
+			System.out.println("Thread already running!");
+		}
+	    doGet(4, "PIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVWPIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVWPIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVWPIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVWPIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVWPIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVW", null);
 	}
 
 	public void doGet(int maxKeyLength, String cypherText, String taskNumber) {
 		
-		int pageReloadTime = 10000;
-		
 		while(true){
+			
+			int pageReloadTime = 10000;
+			long jobNumber = 0;
+			
+			// Getting jobNumber from http request when refresh is performed
+			try {
+				if(taskNumber != null){
+					jobNumber = Long.parseLong(taskNumber.substring(1, taskNumber.length()));
+				}
+			} 
+			catch (NumberFormatException error) {
+				System.out.println("Error: " + error);
+			}
+			
+			System.out.println("<html><head><title>Distributed Systems Assignment</title></head>");		
+			System.out.println("<body>");
 			
 			// If task number is null then initialize vars
 			if (taskNumber == null){
 				
-				RequestBroker rb = new RequestBroker(requestQueue, requestWorkDoneMap, requestFinishedMap);
-				Thread thread = new Thread(rb);
-				
-				if(!thread.isAlive()){
-					thread.start();
-				}
-				
-				jobNumber++;
+				// Generating long number for task
+				long generateNumber = System.currentTimeMillis() / 1000L;
 				
 				// Creating request object singleton
-				DecryptRequest dr = new DecryptRequest(jobNumber, cypherText, maxKeyLength);
+				DecryptRequest dr = new DecryptRequest(generateNumber, cypherText, maxKeyLength);
 				
-				taskNumber = new String("T" + jobNumber);
+				taskNumber = new String("T" + generateNumber);
 
 	        	System.out.println("<h1>Processing request for Job #: " + taskNumber + "</h1>");
 	        	System.out.println("<p>RMI Server is located at " + remoteHost + "</p>");
@@ -49,54 +68,65 @@ public class TestClass {
 	            System.out.println("<p>CypherText: " + cypherText + "</p>");
 	            
 	            requestQueue.add(dr);
-	            dr.setTimeToComplete(System.currentTimeMillis());
-	            requestFinishedMap.put(jobNumber, false);
+	            requestWorkMap.put(generateNumber, dr);
 			}
 			else{
 	        	/* Get job number from map and display result if job completed, if job not complete
 	        	 * then display necessary message
 	        	 */
-				if(!requestFinishedMap.get(jobNumber)){
+				if(!requestWorkMap.get(jobNumber).isComplete()){
 					System.out.println("<h1>Working on request for Job #: " + taskNumber + "...</h1>");
 	        		System.out.println("<p>RMI Server is located at " + remoteHost + "</p>");
 	            	System.out.println("<p>Maximum Key Length: " + maxKeyLength + "</p>");		
 	                System.out.println("<p>Cypher Text: " + cypherText + "</p>");
-	                System.out.println("<p>Task Complete: " + requestFinishedMap.get(jobNumber) + "</p>");
+	                System.out.println("<p>Task Complete: " + requestWorkMap.get(jobNumber).isComplete() + "</p>");
 	            }
 	            else{
-	            	if(requestWorkDoneMap.get(jobNumber) != null){
+	            	if(requestDecypherMap.get(jobNumber) != null){
 	                	System.out.println("<h1>Finished work on Job #: " + taskNumber + " Successfully!</h1>");
 	                	System.out.println("<p>RMI Server is located at " + remoteHost + "</p>");
 	                	System.out.println("<p>Maximum Key Length: " + maxKeyLength + "</p>");		
 	                    System.out.println("<p>Cypher Text: " + cypherText + "</p>");
 	                    System.out.println("<p><b style=\"color:red\">Message will disappear in 30 seconds!</b></p>");
-	                    System.out.println("<p>Plain Text: <b>" + requestWorkDoneMap.get(jobNumber) + "</b></p>");
+	                    System.out.println("<p>Plain Text: <b>" + requestDecypherMap.get(jobNumber) + "</b></p>");
 	                	// Removing request from map & setting another map indicating work is finished
-	                	requestWorkDoneMap.remove(jobNumber);
-	                	System.out.println("<p>Task Complete: " + requestFinishedMap.get(jobNumber) + "</p>");
-	                	System.out.println("<p>Completed in " + "TODO" + " seconds!</p>");
+	                	requestDecypherMap.remove(jobNumber);
+	                	System.out.println("<p>Task Complete: " + requestWorkMap.get(jobNumber).isComplete() + "</p>");
+	                	System.out.println("<p>Completed in " + requestWorkMap.get(jobNumber).getTimeToComplete() + " seconds!</p>");
 	                	pageReloadTime = 30000;
 	                }
 	            	else{
 	                	// If job has been fully completed & removed from finished queue then display
-	                	if(requestFinishedMap.get(jobNumber)){
+	                	if(requestWorkMap.get(jobNumber).isComplete()){
 	                		System.out.println("<h1>Job #: " + taskNumber + " Complete!</h1>");
 	                		System.out.println("<p>RMI Server is located at " + remoteHost + "</p>");
-	                		System.out.println("<p>Task Complete: " + requestFinishedMap.get(jobNumber) + "</p>");
-	                		System.out.println("<p>Return to cracker page - <a href=\"http://" + remoteHost + ":8080/cracker\">Home Page</a></p>");
+	                		System.out.println("<p>Task Complete: " + requestWorkMap.get(jobNumber).isComplete() + "</p>");
+	                		System.out.println("<p>Completed in " + requestWorkMap.get(jobNumber).getTimeToComplete() + " seconds!</p>");
+	                		System.out.println("<p><a href=\"http://localhost:8080/cracker\">Cracker Home Page</a></p>");
 	                	}
 	                }
 	        	}
 	        }
 			
-			try {
-			    Thread.sleep(pageReloadTime);
-			} catch(InterruptedException ex) {
-			    Thread.currentThread().interrupt();
-			}
+			System.out.println("<form name=\"frmCracker\">");
+			System.out.println("<input name=\"frmMaxKeyLength\" type=\"hidden\" value=\"" + maxKeyLength + "\">");
+			System.out.println("<input name=\"frmCypherText\" type=\"hidden\" value=\"" + cypherText + "\">");
+			System.out.println("<input name=\"frmStatus\" type=\"hidden\" value=\"" + taskNumber + "\">");
+			System.out.println("</form>");								
+			System.out.println("</body>");	
+			System.out.println("</html>");	
+			
+			System.out.println("<script>");
+			System.out.println("var wait=setTimeout(\"document.frmCracker.submit();\", " + pageReloadTime + ");");
+			System.out.println("</script>");
 			
 			// Resetting after removing task from map
 			pageReloadTime = 10000;
+			
+			try {
+				Thread.sleep(pageReloadTime);
+			} catch (InterruptedException e) {
+			}
 		}
 				
 		/*-----------------------------------------------------------------------     

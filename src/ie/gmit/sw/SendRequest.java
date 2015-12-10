@@ -15,10 +15,9 @@ public class SendRequest {
 		setKey(maxKeyLength);
 	}
 	
-	public String getPlainText() throws MalformedURLException, RemoteException, NotBoundException{
+	public String getPlainText(String remoteHost) throws MalformedURLException, RemoteException, NotBoundException{
 		
-		VigenereBreaker vb = (VigenereBreaker) Naming.lookup("rmi://" + CrackerHandler.getHost() + ":1099/Cypher-Breaker");
-		//VigenereBreaker vb = (VigenereBreaker) Naming.lookup("rmi://" + "localhost" + ":1099/Cypher-Breaker");
+		VigenereBreaker vb = (VigenereBreaker) Naming.lookup("rmi://" + remoteHost + ":1099/Cypher-Breaker");
 		
 		String result = "";
 		try {

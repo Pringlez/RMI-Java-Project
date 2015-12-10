@@ -9,17 +9,19 @@ import java.util.concurrent.BlockingQueue;
 public class RequestBroker implements Runnable {
 	
 	protected BlockingQueue<DecryptRequest> requestQueue = null;
-	protected HashMap<Long, String> requestWorkDoneMap = null;
-	protected HashMap<Long, Boolean> requestFinishedMap = null;
+	protected HashMap<Long, String> requestDecypherMap = null;
+	protected HashMap<Long, DecryptRequest> requestWorkMap = null;
+	protected String remoteHost;
 
-	public RequestBroker(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestWorkDoneMap, HashMap<Long, Boolean> requestFinishedMap) {
-		setRequests(requestQueue, requestWorkDoneMap, requestFinishedMap);
+	public RequestBroker(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestDecypherMap, HashMap<Long, DecryptRequest> requestWorkMap, String remoteHost) {
+		setRequests(requestQueue, requestDecypherMap, requestWorkMap, remoteHost);
     }
 	
-	public void setRequests(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestWorkDoneMap, HashMap<Long, Boolean> requestFinishedMap) {
+	public void setRequests(BlockingQueue<DecryptRequest> requestQueue, HashMap<Long, String> requestDecypherMap, HashMap<Long, DecryptRequest> requestWorkMap, String remoteHost) {
 		this.requestQueue = requestQueue;
-		this.requestWorkDoneMap = requestWorkDoneMap;
-		this.requestFinishedMap = requestFinishedMap;
+		this.requestDecypherMap = requestDecypherMap;
+		this.requestWorkMap = requestWorkMap;
+		this.remoteHost = remoteHost;
 	}
 
     public void run() {
@@ -31,10 +33,12 @@ public class RequestBroker implements Runnable {
         		
         		if(request != null){
 	        		SendRequest newRequest = new SendRequest(request.getCypherText(), request.getMaxKeyLength());
-	        		String cypherResult = newRequest.getPlainText();
-	        		request.setTimeToComplete(System.currentTimeMillis() - request.getTimeToComplete());
-	        		requestWorkDoneMap.put(request.getJobNumber(), cypherResult);
-	        		requestFinishedMap.put(request.getJobNumber(), true);
+	        		request.setTimeToComplete(System.currentTimeMillis());
+	        		String cypherResult = newRequest.getPlainText(remoteHost);
+	        		request.setTimeToComplete((System.currentTimeMillis() - request.getTimeToComplete()) / 1000);
+	        		requestDecypherMap.put(request.getJobNumber(), cypherResult);
+	        		request.setComplete(true);
+	        		requestWorkMap.put(request.getJobNumber(), request);
         		}
 	            // Make thread sleep
 	            Thread.sleep(2000);
