@@ -3,13 +3,15 @@
 
 Project Details
 ---------------
-0. The current version of the cypher server is multithreaded, it will run each decypher request on its own thread.
-0. The tomcat client is built to handle multiple requests from end users. Each request will be queued and sent off to the decypher server.
-0. When decypher is complete, it will return the result to the specific user that requested the decypher request. Usually keys higher than 5 will take a considerable amount of time to decypher. 
+0. The current version of the cypher server is multithreaded, it will run each decypher request on its own thread. This could be useful because multiple tomcat servlets can send requests to the cypher server and return the result.
+0. The tomcat client is built to handle multiple requests from end users. Each request will be queued and sent off to the decypher server asynchronously.
+0. When the decypher is complete, it will return the result to the specific user that requested the decypher request. Usually keys higher than 5 will take a considerable amount of time to decypher, be patient.
 
 
 Usage
 -----
+The tomcat client & cypher server have been developed & tested on a Windows environment, confirmed working. A Linux environment shouldn't have any problems running the application.
+
 To run the java cypher server, open a command prompt / terminal window. Navigate to the directory containing the 'vigenere.jar' file and run the following command. Also make sure to include the 'WarAndPeace.txt' file to allow the application build the quadgrams.
 
 ```
