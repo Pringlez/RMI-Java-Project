@@ -28,23 +28,35 @@ The following example uses text from 'War and Peace' to decypher. First, start t
 
 The following plain text was cyphered using the key 'BAGS'.
 
-### Plain Text
+### Input Plain Text
+The input plain text, cyphered using the key 'BAGS'.
+```
 WELLPRINCESOGENOAANDLUCCAARENOWJUSTFAMILYESTATESOFTHEBUONAPARTESBUTIWARNYOUIFYOUDONTTELLMETHATTHISMEANSWARIFYOUSTILLTRYTODEFENDTHEINFAMIESANDHORRORSPERPETRATEDBYTHATANTICHRISTIREALLYBELIEVEHEISANTICHRISTIWILLHAVENOTHINGMORE
+```
 
-### Cypher Text
+### Output Cypher Text
+The output after being cyphered, you can reverse the cypher using the key 'BAGS'.
+```
 XERDQROFDEYGHETGBATVMUIUBAXWOOCBVSZXBMODZEYLBTKKPFZZFBAGOAVSSTKKCUZAXAXFZOAAGYUMEOTLUERDNEZZBTZZJSSWBNYOBROXZOAKUIRDURELPDKXFNJLIEOFGASAFSGFEHUJSOXKQEXHFTXSUEJTZTNSUATLJCNJJSZASEGDMYHWMIKNFHKATATLJCNJJSZAXIRDIABWOOZZJNMEPRK
+```
 
 Copy and paste the cypher text to the tomcat client and set the max key length to 4 and press the form button. This should generate a new request for the cypher server to process. Watch the output of the cypher server terminal window, it should eventually print out the best key, which should be 'BAGS'.
 
-Below is more cypher texts to test the application, run the cypher texts through the tomcat client to see what key they produce.
+Below is more cypher texts to test the application, run the cypher texts through the tomcat client to see what key they produce. Copy & paste the following text into the application.
 
-### Cypher Text
+### Cypher Text 1
+```
 PIDEIVAGVIKHZIFHTEFWEYUVTEJXGSOCNWLYTQAERIKMTXWLHJLAXFMHGEHTKXWLUYLBPEJGRSMBYCGNWSFMMIDEFILATXLABWEXTRKPTVAYRSMLMMDEMVQMHHWYXRVMAIAGYEEBXWSGWLGKKSJLIIJIXXJTMIVURXZTMEFMBGZKBWLBKISEECTXEMWOXLWBLEFMBGZKBWLBPMDEAENXGSLABRYFHVW
+```
 
-### Cypher Text
+### Cypher Text 2
+```
 FSSYYFPALSZBPSUBJOUQUIJPJOYRWCDWDGASJAPYHSZGJHLFXTAUNPBBWOWNAHLFKIAVFOYAHCBVOMVHMCUGCSSYVSAUJHAURGTRJBZJJFPSHCBFCWSYCFFGXRLSNBKGQSPAOOTVNGHAMVVEACYFYSYCNHYNCSKOHHONCOUGRQOERGAVASHYUMIRUWLINVLVBOUGRQOERGAVFWSYQOCRWCAURBNZXFL
+```
 
-The next cypher text used a key length of 5 to encrypt the text. Set the max key length of 5 when submitting the request.
+The next cypher text used a key length of 5 to encrypt the text. Set the max key length of 5 when submitting the request. This may take some time to complete, please be patient.
 
 ### Cypher Text
+```
 SEWDWNIYULOORWUKALFKHUNUHWRPFVSJFKABAXASUEDLHPEDGMPHPTBKNLHHNTPKIQTTOHNNJGBEFJGBZOYLAALWELPHLLADIDELWNDOHNIQQVQSEASHTCQAKDPXLJDEZLENQSTEEDSUZHZJYKRDHLNPPLYWTPVIUTSSAWNEAJDRTKAERPSSHYMWSEEGWOAIDSUPINZYESEADELWZHREYGADIYYTKRP
+```
